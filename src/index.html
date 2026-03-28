@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>本地文件页数统计工具 华印首发</title>
+    <title>本地文件页数统计工具  华印社区首发</title>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://unpkg.com/mammoth@1.4.18/bundled/mammoth.browser.min.js"></script>
     <style>
@@ -39,7 +39,7 @@
             font-weight: 600;
         }
 
-        /* ============ */
+        /* 黑钮 */
         .reward-btn {
             position: fixed;
             top: 20px;
@@ -67,7 +67,7 @@
             transform: translateY(0);
         }
 
-        /* 赞赏弹窗 */
+        /* 窗 */
         .reward-modal {
             position: fixed;
             top: 0;
@@ -92,6 +92,7 @@
             border: 3px solid #fff;
             box-shadow: 0 0 40px rgba(255,255,255,0.2);
         }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -100,7 +101,7 @@
         .drop-area {
             border: 3px dashed #4fc3f7;
             border-radius: 16px;
-            padding: 4rem 2rem;
+            padding: 4rem 2rem 3rem;
             text-align: center;
             transition: all 0.3s ease;
             background: rgba(255, 255, 255, 0.05);
@@ -128,6 +129,12 @@
         .drop-subtext {
             font-size: 0.9rem;
             color: #757575;
+            margin-bottom: 0.8rem;
+        }
+        .click-tip {
+            font-size: 0.9rem;
+            color: #90caf9;
+            line-height: 1.5;
         }
 
         .stats-panel {
@@ -285,20 +292,25 @@
     </style>
 </head>
 <body>
-    <!-- 按钮 -->
+    <!-- 赏按钮 -->
     <button class="reward-btn" id="rewardBtn">赏</button>
-    <!-- 弹窗 -->
     <div class="reward-modal" id="rewardModal">
         <img src="mm_r.png" class="reward-img" alt="赞赏码">
     </div>
 
     <div class="container">
-        <h1 class="title">本地文件页数统计工具</h1>
+        <h1 class="title">本地文件页数统计工具 华印首发</h1>
         <div class="drop-area" id="dropArea">
             <div class="drop-icon">📁</div>
-            <div class="drop-text">拖拽文件到此处</div>
+            <div class="drop-text">拖拽文件/文件夹到此处 或 点击选择</div>
             <div class="drop-subtext">支持 PDF/DOCX/DOC/PPT/PPTX/TXT/XLS/XLSX，完全离线解析</div>
+            <div class="click-tip">
+                左键单击：选择文件 　｜　 右键单击：选择文件夹
+            </div>
         </div>
+
+        <input type="file" id="fileInput" multiple style="display:none;">
+        <input type="file" id="folderInput" webkitdirectory directory style="display:none;">
 
         <div class="stats-panel">
             <div class="stat-card">
@@ -333,7 +345,7 @@
 
         <div class="footer">
             版权所有 © 清风寇明月｜版本号 v1.1（2026.3）<br>
-            <a href="https://www.baidu.cn" target="_blank">访问主页</a>
+            <a href="https://www.52cnp.com/?102646" target="_blank">访问作者主页</a>
         </div>
     </div>
 
@@ -351,15 +363,27 @@
         const floatClearBtn = document.getElementById('floatClearBtn');
         const rewardBtn = document.getElementById('rewardBtn');
         const rewardModal = document.getElementById('rewardModal');
+        const fileInput = document.getElementById('fileInput');
+        const folderInput = document.getElementById('folderInput');
 
-        // 赞赏弹窗
-        rewardBtn.addEventListener('click', ()=>{
+        // 赞赏
+        rewardBtn.addEventListener('click', () => {
             rewardModal.classList.add('show');
         });
-        rewardModal.addEventListener('click', (e)=>{
-            if(e.target === rewardModal){
-                rewardModal.classList.remove('show');
-            }
+        rewardModal.addEventListener('click', (e) => {
+            if(e.target === rewardModal) rewardModal.classList.remove('show');
+        });
+
+        // 左键 = 选择文件
+        dropArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        // 右键 = 选择文件夹
+        dropArea.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            folderInput.click();
         });
 
         // 浮动按钮拖动
@@ -412,11 +436,15 @@
             await handleFiles(files);
         }
 
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        folderInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
         async function handleFiles(files) {
             const startTime = performance.now();
+            const allowTypes = ['pdf', 'docx', 'doc', 'ppt', 'pptx', 'txt', 'xls', 'xlsx'];
+
             for (let file of files) {
-                const ext = file.name.split('.').pop().toLowerCase();
-                const allowTypes = ['pdf', 'docx', 'doc', 'ppt', 'pptx', 'txt', 'xls', 'xlsx'];
+                const ext = file.name.split('.').pop()?.toLowerCase() || '';
                 if (!allowTypes.includes(ext)) continue;
 
                 let pages = 0;
